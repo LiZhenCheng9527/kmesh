@@ -49,7 +49,7 @@ func TestNewFilterTcpProxy(t *testing.T) {
 				Weight: 1,
 			},
 			{
-				Name:   "ut-bbr",
+				Name:   "ut-baz",
 				Weight: 3,
 			},
 		}
