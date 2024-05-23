@@ -132,6 +132,10 @@ func (svc *processor) processAdsResponse(resp *service_discovery_v3.DiscoveryRes
 	}
 }
 
+func (svc *processor) DeepCopy() {
+	fmt.Println("**********test***********\n")
+}
+
 func (svc *processor) handleCdsResponse(resp *service_discovery_v3.DiscoveryResponse) error {
 	var (
 		err     error

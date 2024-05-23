@@ -67,6 +67,7 @@ func (c *Controller) HandleAdsStream() error {
 	}
 
 	c.Processor.processAdsResponse(rsp)
+	c.Processor.DeepCopy()
 
 	if err = c.Stream.Send(c.Processor.ack); err != nil {
 		return fmt.Errorf("stream send ack failed, %s", err)
