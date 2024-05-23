@@ -1,0 +1,7 @@
+coverage/coverage.out
+hack/coverage.sh
+hack/ut_coverage.sh
+pkg/controller/ads/ads_controller.go
+pkg/controller/ads/ads_processor.go
+pkg/controller/workload/workload_hash.go
+pkg/utils/test/bpf_map.go

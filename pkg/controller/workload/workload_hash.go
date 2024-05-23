@@ -17,6 +17,7 @@
 package workload
 
 import (
+	"fmt"
 	"hash/fnv"
 	"math"
 )
@@ -41,6 +42,7 @@ func (h *HashName) StrToNum(str string) uint32 {
 
 	hash.Reset()
 	hash.Write([]byte(str))
+	h.DeepCopy()
 
 	// Using linear probing to solve hash conflicts
 	for num = hash.Sum32(); num < math.MaxUint32; num++ {
@@ -61,4 +63,8 @@ func (h *HashName) NumToStr(num uint32) string {
 
 func (h *HashName) Delete(str string) {
 	delete(h.numToStr, h.StrToNum(str))
+}
+
+func (h *HashName) DeepCopy() {
+	fmt.Printf("****test****\n")
 }

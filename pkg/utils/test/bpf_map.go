@@ -84,4 +84,6 @@ func CleanupBpfMap() {
 	if err != nil {
 		fmt.Println("remove /mnt/kmesh_cgroup2 error: ", err)
 	}
+
+	fmt.Printf("test")
 }

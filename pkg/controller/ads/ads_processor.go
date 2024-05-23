@@ -133,7 +133,35 @@ func (svc *processor) processAdsResponse(resp *service_discovery_v3.DiscoveryRes
 }
 
 func (svc *processor) DeepCopy() {
-	fmt.Println("**********test***********\n")
+	a := 1
+	b := 1
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	b = a + b
+	fmt.Printf("**********test***********\n")
 }
 
 func (svc *processor) handleCdsResponse(resp *service_discovery_v3.DiscoveryResponse) error {
