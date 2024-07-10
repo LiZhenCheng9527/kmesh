@@ -51,7 +51,9 @@ func NewController(bpfWorkload *bpf.BpfKmeshWorkload) *Controller {
 }
 
 func (c *Controller) Run(ctx context.Context) {
-	go c.Rbac.Run(ctx, c.bpfWorkloadObj.SockOps.MapOfTuple, c.bpfWorkloadObj.XdpAuth.MapOfAuth)
+	if c.Rbac != nil {
+		go c.Rbac.Run(ctx, c.bpfWorkloadObj.SockOps.MapOfTuple, c.bpfWorkloadObj.XdpAuth.MapOfAuth)
+	}
 }
 
 func (c *Controller) WorkloadStreamCreateAndSend(client discoveryv3.AggregatedDiscoveryServiceClient, ctx context.Context) error {
