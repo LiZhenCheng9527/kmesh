@@ -152,6 +152,14 @@ func (m *MetricController) Run(ctx context.Context, mapOfTcpInfo *ebpf.Map) {
 		return
 	}
 
+	ch := make(chan []byte, 1000)
+	// Register metrics to Prometheus and start Prometheus server
+	go RunPrometheusClient(ctx)
+	go m.getConnectDataFromRingBuf(ctx, ch, mapOfTcpInfo)
+	go m.buildMetric(ctx, ch)
+}
+
+func (m *MetricController) getConnectDataFromRingBuf(ctx context.Context, ch chan []byte, mapOfTcpInfo *ebpf.Map) {
 	reader, err := ringbuf.NewReader(mapOfTcpInfo)
 	if err != nil {
 		log.Errorf("open metric notify ringbuf map FAILED, err: %v", err)
@@ -163,28 +171,36 @@ func (m *MetricController) Run(ctx context.Context, mapOfTcpInfo *ebpf.Map) {
 		}
 	}()
 
-	// Register metrics to Prometheus and start Prometheus server
-	go RunPrometheusClient(ctx)
-
-	rec := ringbuf.Record{}
-	data := requestMetric{}
-
 	for {
 		select {
 		case <-ctx.Done():
 			return
 		default:
+			rec := ringbuf.Record{}
 			if err := reader.ReadInto(&rec); err != nil {
 				log.Errorf("ringbuf reader FAILED to read, err: %v", err)
-				continue
+				return
 			}
 			if len(rec.RawSample) != MSG_LEN {
 				log.Errorf("wrong length %v of a msg, should be %v", len(rec.RawSample), MSG_LEN)
-				continue
+				return
 			}
+			ch <- rec.RawSample
+		}
+	}
+}
 
-			connectType := binary.LittleEndian.Uint32(rec.RawSample)
-			originInfo := rec.RawSample[unsafe.Sizeof(connectType):]
+func (m *MetricController) buildMetric(ctx context.Context, ch chan []byte) {
+	data := requestMetric{}
+	var err error
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			bytesData := <-ch
+			connectType := binary.LittleEndian.Uint32(bytesData)
+			originInfo := bytesData[unsafe.Sizeof(connectType):]
 			buf := bytes.NewBuffer(originInfo)
 			switch connectType {
 			case constants.MSG_TYPE_IPV4:
@@ -192,8 +208,13 @@ func (m *MetricController) Run(ctx context.Context, mapOfTcpInfo *ebpf.Map) {
 			case constants.MSG_TYPE_IPV6:
 				data, err = buildV6Metric(buf)
 			default:
-				log.Errorf("get connection info failed: %v", err)
-				continue
+				log.Errorf("Unsupported IP family")
+				return
+			}
+
+			if err != nil {
+				log.Debugf("get data failed: %v", err)
+				return
 			}
 
 			workloadLabels := m.buildWorkloadMetric(&data)
@@ -297,7 +318,7 @@ func (m *MetricController) getWorkloadByAddress(address []byte) (*workloadapi.Wo
 	networkAddr.Address, _ = netip.AddrFromSlice(address)
 	workload := m.workloadCache.GetWorkloadByAddr(networkAddr)
 	if workload == nil {
-		log.Warnf("get workload from ip %v FAILED", address)
+		log.Debugf("get workload from ip %v FAILED", address)
 		return nil, ""
 	}
 	return workload, networkAddr.Address.String()
@@ -350,14 +371,12 @@ func buildServiceMetric(dstWorkload, srcWorkload *workloadapi.Workload, dstPort 
 			}
 		}
 		if namespacedhost == "" {
-			log.Infof("can't find service correspond workload: %s", dstWorkload.Name)
+			log.Debugf("can't find service correspond workload: %s", dstWorkload.Name)
 		}
 
 		svcHost := ""
 		svcNamespace := ""
-		if len(strings.Split(namespacedhost, "/")) != 2 {
-			log.Info("get destination service host failed")
-		} else {
+		if len(strings.Split(namespacedhost, "/")) == 2 {
 			svcNamespace = strings.Split(namespacedhost, "/")[0]
 			svcHost = strings.Split(namespacedhost, "/")[1]
 		}
