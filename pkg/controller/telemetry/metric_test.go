@@ -25,6 +25,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
+
 	"kmesh.net/kmesh/api/v2/workloadapi"
 	"kmesh.net/kmesh/pkg/controller/workload/cache"
 )
