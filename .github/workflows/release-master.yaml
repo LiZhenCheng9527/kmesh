@@ -24,10 +24,11 @@ jobs:
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
       - name: change kmesh version
+        if: github.event_name == 'release' && github.event.action == 'published'
         env:
           VERSION: ${{ github.ref_name }}
         run: make update-version UPDATE_VERSION=${{ github.ref_name }}
-        
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v5
