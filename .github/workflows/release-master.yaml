@@ -23,6 +23,9 @@ jobs:
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
 
+      - name: debug action
+        run: echo "Event name ${{ github.event_name }}, Event action ${{ github.event.action }}"
+        
       - name: change kmesh version
         if: github.event_name == 'release' && github.event.action == 'published'
         env:
